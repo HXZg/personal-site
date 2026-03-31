@@ -33,11 +33,11 @@
     </nav>
 
     <main>
-      <HeroSection id="hero" />
-      <DateTimeSection id="datetime" />
-      <GithubSection id="github" />
-      <JuejinSection id="juejin" />
-      <ToolsSection id="tools" />
+      <HeroSection id="hero" v-reveal />
+      <DateTimeSection id="datetime" v-reveal />
+      <GithubSection id="github" v-reveal />
+      <JuejinSection id="juejin" v-reveal />
+      <ToolsSection id="tools" v-reveal />
     </main>
 
     <footer class="footer">

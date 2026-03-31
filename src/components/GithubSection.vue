@@ -3,7 +3,7 @@
     <div class="container">
       <SectionTitle icon="🐙" title="GitHub 项目" />
 
-      <!-- 加载中 -->
+      <!-- 加载中骨架屏 -->
       <div v-if="loading" class="loading-wrap">
         <div class="skeleton-profile"></div>
         <div class="skeleton-grid">
@@ -11,8 +11,11 @@
         </div>
       </div>
 
-      <!-- 错误 -->
-      <div v-else-if="error" class="error-tip">⚠️ {{ error }}，显示缓存数据</div>
+      <!-- 错误提示（fallback 兜底时显示） -->
+      <div v-else-if="error" class="error-tip">
+        <span>⚠️ {{ error }}</span>
+        <button @click="load" class="retry-btn">🔄 重试</button>
+      </div>
 
       <template v-else>
         <!-- 用户信息 -->

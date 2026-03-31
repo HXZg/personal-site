@@ -1,0 +1,21 @@
+{
+  "name": "HXZg · 移动端开发者",
+  "short_name": "HXZg",
+  "description": "专注 HarmonyOS、Android、Flutter 移动端开发",
+  "start_url": "./",
+  "display": "standalone",
+  "background_color": "#0d1117",
+  "theme_color": "#0d1117",
+  "icons": [
+    {
+      "src": "https://avatars.githubusercontent.com/u/40654728?v=4",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "https://avatars.githubusercontent.com/u/40654728?v=4",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}

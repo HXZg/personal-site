@@ -49,3 +49,8 @@ input, textarea, select, button {
 ::-webkit-scrollbar { width: 6px; }
 ::-webkit-scrollbar-track { background: var(--bg); }
 ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+
+/* 滚动入场动画 */
+[v-reveal] {
+  will-change: opacity, transform;
+}
