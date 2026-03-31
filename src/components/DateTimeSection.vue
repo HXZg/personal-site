@@ -2,8 +2,8 @@
   <section class="section" :id="id">
     <div class="container">
       <SectionTitle icon="🗓️" title="日期 · 时间 · 节日" />
-
       <div class="dt-grid">
+
         <!-- 时钟卡片 -->
         <div class="card clock-card">
           <div class="clock-display">
@@ -12,7 +12,15 @@
           </div>
           <div class="date-display">{{ dateStr }}</div>
           <div class="week-display">{{ weekStr }} · 第 {{ weekNum }} 周</div>
-          <div class="lunar-display">{{ lunarStr }}</div>
+          <div class="lunar-row">
+            <span class="lunar-tag">{{ lunarInfo.yearStr }}{{ lunarInfo.zodiac }}年</span>
+            <span class="lunar-tag">{{ lunarInfo.monthStr }}{{ lunarInfo.dayStr }}</span>
+            <span v-if="lunarInfo.jieQi" class="lunar-tag jieqi">🌿 {{ lunarInfo.jieQi }}</span>
+          </div>
+          <!-- 今日节日 -->
+          <div v-if="todayFestivals.length" class="today-fest">
+            <span v-for="f in todayFestivals" :key="f" class="fest-badge">🎉 {{ f }}</span>
+          </div>
         </div>
 
         <!-- 节日倒计时 -->
@@ -25,8 +33,20 @@
                 <span class="f-name">{{ f.name }}</span>
                 <span class="f-date">{{ f.date }}</span>
               </div>
-              <div class="f-countdown" :class="f.days <= 7 ? 'soon' : ''">
-                <span class="f-days">{{ f.days }}</span>
+              <div class="f-countdown" :class="{ soon: f.days <= 7 }">
+                <span class="f-days">{{ f.days === 0 ? '今天' : f.days }}</span>
+                <span class="f-unit" v-if="f.days > 0">天后</span>
+              </div>
+            </div>
+            <!-- 下一个节气 -->
+            <div v-if="nextJieQi" class="festival-item jieqi-item">
+              <span class="f-icon">🌿</span>
+              <div class="f-info">
+                <span class="f-name">{{ nextJieQi.name }}</span>
+                <span class="f-date">{{ nextJieQi.date }}</span>
+              </div>
+              <div class="f-countdown">
+                <span class="f-days">{{ nextJieQi.days }}</span>
                 <span class="f-unit">天后</span>
               </div>
             </div>
@@ -65,6 +85,7 @@
             <p class="quote-author">— {{ quote.author }}</p>
           </div>
         </div>
+
       </div>
     </div>
   </section>
@@ -73,21 +94,22 @@
 <script setup>
 import { ref, computed, onMounted, onUnmounted } from 'vue'
 import SectionTitle from './SectionTitle.vue'
+import { useLunar } from '../composables/useLunar.js'
 
 defineProps({ id: String })
 
 const now = ref(new Date())
 let timer
-
 onMounted(() => { timer = setInterval(() => { now.value = new Date() }, 1000) })
 onUnmounted(() => clearInterval(timer))
 
+const { lunarInfo, todayFestivals, upcomingFestivals, nextJieQi } = useLunar(now)
+
 const pad = n => String(n).padStart(2, '0')
+const weekDays = ['星期日','星期一','星期二','星期三','星期四','星期五','星期六']
 
 const timeHM = computed(() => `${pad(now.value.getHours())}:${pad(now.value.getMinutes())}`)
-const timeS = computed(() => pad(now.value.getSeconds()))
-
-const weekDays = ['星期日','星期一','星期二','星期三','星期四','星期五','星期六']
+const timeS  = computed(() => pad(now.value.getSeconds()))
 const dateStr = computed(() => {
   const d = now.value
   return `${d.getFullYear()} 年 ${d.getMonth()+1} 月 ${d.getDate()} 日`
@@ -99,86 +121,35 @@ const weekNum = computed(() => {
   return Math.ceil(((d - start) / 86400000 + start.getDay() + 1) / 7)
 })
 
-// 简易农历（近似）
-const lunarMonths = ['正月','二月','三月','四月','五月','六月','七月','八月','九月','十月','冬月','腊月']
-const lunarDays = ['初一','初二','初三','初四','初五','初六','初七','初八','初九','初十','十一','十二','十三','十四','十五','十六','十七','十八','十九','二十','廿一','廿二','廿三','廿四','廿五','廿六','廿七','廿八','廿九','三十']
-const lunarStr = computed(() => {
-  // 简单近似：以2024-01-01为农历十一月廿一基准
-  const base = new Date(2024, 0, 1)
-  const diff = Math.floor((now.value - base) / 86400000)
-  const lunarDay = (20 + diff) % 30
-  const lunarMonth = Math.floor((diff + 20) / 30) % 12
-  return `农历 ${lunarMonths[lunarMonth]}${lunarDays[lunarDay]}`
-})
-
-// 节日数据
-function daysUntil(month, day) {
-  const d = now.value
-  let target = new Date(d.getFullYear(), month - 1, day)
-  if (target < d) target.setFullYear(d.getFullYear() + 1)
-  return Math.ceil((target - d) / 86400000)
-}
-
-const upcomingFestivals = computed(() => {
-  const all = [
-    { name: '元旦', icon: '🎆', month: 1, day: 1 },
-    { name: '春节', icon: '🧧', month: 1, day: 29 },
-    { name: '情人节', icon: '💝', month: 2, day: 14 },
-    { name: '妇女节', icon: '🌸', month: 3, day: 8 },
-    { name: '劳动节', icon: '🔨', month: 5, day: 1 },
-    { name: '儿童节', icon: '🎈', month: 6, day: 1 },
-    { name: '中秋节', icon: '🥮', month: 9, day: 29 },
-    { name: '国庆节', icon: '🇨🇳', month: 10, day: 1 },
-    { name: '圣诞节', icon: '🎄', month: 12, day: 25 },
-  ]
-  return all
-    .map(f => ({ ...f, days: daysUntil(f.month, f.day), date: `${f.month}月${f.day}日` }))
-    .sort((a, b) => a.days - b.days)
-    .slice(0, 5)
-})
-
-// 年度进度
 const progressItems = computed(() => {
-  const d = now.value
-  const y = d.getFullYear()
-  const yearStart = new Date(y, 0, 1)
-  const yearEnd = new Date(y + 1, 0, 1)
+  const d = now.value; const y = d.getFullYear()
+  const yearStart = new Date(y, 0, 1), yearEnd = new Date(y+1, 0, 1)
   const yearPct = Math.round((d - yearStart) / (yearEnd - yearStart) * 100)
-
-  const monthStart = new Date(y, d.getMonth(), 1)
-  const monthEnd = new Date(y, d.getMonth() + 1, 1)
+  const monthStart = new Date(y, d.getMonth(), 1), monthEnd = new Date(y, d.getMonth()+1, 1)
   const monthPct = Math.round((d - monthStart) / (monthEnd - monthStart) * 100)
-
-  const weekStart = new Date(d)
-  weekStart.setDate(d.getDate() - d.getDay())
-  const weekPct = Math.round((d.getDay() / 7) * 100)
-
-  const dayPct = Math.round((d.getHours() * 3600 + d.getMinutes() * 60 + d.getSeconds()) / 86400 * 100)
-
+  const weekPct = Math.round(d.getDay() / 7 * 100)
+  const dayPct = Math.round((d.getHours()*3600 + d.getMinutes()*60 + d.getSeconds()) / 86400 * 100)
   return [
-    { label: `${y} 年进度`, pct: yearPct, color: '#58a6ff', sub: `已过 ${Math.floor((d - yearStart)/86400000)} 天` },
-    { label: `本月进度`, pct: monthPct, color: '#3fb950', sub: `${d.getMonth()+1}月第 ${d.getDate()} 天` },
-    { label: `本周进度`, pct: weekPct, color: '#d2a8ff', sub: weekDays[d.getDay()] },
-    { label: `今日进度`, pct: dayPct, color: '#ffa657', sub: `${pad(d.getHours())}:${pad(d.getMinutes())} / 24:00` },
+    { label: `${y} 年进度`, pct: yearPct, color: '#58a6ff', sub: `已过 ${Math.floor((d-yearStart)/86400000)} 天` },
+    { label: '本月进度',    pct: monthPct, color: '#3fb950', sub: `${d.getMonth()+1}月第 ${d.getDate()} 天` },
+    { label: '本周进度',    pct: weekPct,  color: '#d2a8ff', sub: weekDays[d.getDay()] },
+    { label: '今日进度',    pct: dayPct,   color: '#ffa657', sub: `${pad(d.getHours())}:${pad(d.getMinutes())} / 24:00` },
   ]
 })
 
-// 今日信息
 const todayInfo = computed(() => {
-  const d = now.value
-  const y = d.getFullYear()
+  const d = now.value; const y = d.getFullYear()
   const start = new Date(y, 0, 1)
   const dayOfYear = Math.floor((d - start) / 86400000) + 1
-  const daysInYear = (y % 4 === 0 && (y % 100 !== 0 || y % 400 === 0)) ? 366 : 365
-  const zodiac = ['鼠','牛','虎','兔','龙','蛇','马','羊','猴','鸡','狗','猪'][(y - 2020 + 4) % 12]
+  const daysInYear = (y%4===0 && (y%100!==0 || y%400===0)) ? 366 : 365
   const season = ['冬季','冬季','春季','春季','春季','夏季','夏季','夏季','秋季','秋季','秋季','冬季'][d.getMonth()]
   return [
     { icon: '📅', label: '今年第', value: `${dayOfYear} 天` },
     { icon: '📆', label: '全年剩余', value: `${daysInYear - dayOfYear} 天` },
-    { icon: '🐉', label: '生肖', value: zodiac + '年' },
+    { icon: '🐉', label: '生肖', value: lunarInfo.value.zodiac ? lunarInfo.value.zodiac + '年' : '—' },
     { icon: '🌿', label: '当前季节', value: season },
-    { icon: '🌅', label: '日出', value: '06:12' },
-    { icon: '🌇', label: '日落', value: '18:45' },
+    { icon: '☯️', label: '干支年', value: lunarInfo.value.yearStr || '—' },
+    { icon: '🌙', label: '农历', value: (lunarInfo.value.monthStr || '') + (lunarInfo.value.dayStr || '') },
   ]
 })
 
@@ -194,51 +165,36 @@ const quote = quotes[new Date().getDate() % quotes.length]
 <style scoped>
 .section { padding: 5rem 1.5rem; }
 .container { max-width: 1100px; margin: 0 auto; }
+.dt-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.25rem; }
 
-.dt-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 1.25rem;
-}
-@media (max-width: 768px) {
-  .section { padding: 3rem 1rem; }
-  .dt-grid { grid-template-columns: 1fr; }
-  .time-hm { font-size: 2.8rem; }
-  .today-list { grid-template-columns: 1fr; }
-}
-
-.card {
-  background: var(--bg-card);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  padding: 1.5rem;
-  transition: border-color 0.2s;
-}
+.card { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius); padding: 1.5rem; transition: border-color 0.2s; }
 .card:hover { border-color: #388bfd; }
 .card-title { font-size: 0.9rem; color: var(--text-muted); margin-bottom: 1.25rem; font-weight: 600; }
 
-/* 时钟 */
 .clock-card { text-align: center; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 0.5rem; }
 .clock-display { display: flex; align-items: baseline; }
 .time-hm { font-size: 3.5rem; font-weight: 700; font-variant-numeric: tabular-nums; color: var(--accent); line-height: 1; }
 .time-s { font-size: 2rem; font-weight: 400; color: var(--text-muted); }
 .date-display { font-size: 1.1rem; font-weight: 500; }
 .week-display { font-size: 0.9rem; color: var(--text-muted); }
-.lunar-display { font-size: 0.85rem; color: var(--accent4); background: rgba(210,168,255,0.1); padding: 0.25rem 0.75rem; border-radius: 20px; }
+.lunar-row { display: flex; gap: 0.5rem; flex-wrap: wrap; justify-content: center; }
+.lunar-tag { font-size: 0.82rem; color: var(--accent4); background: rgba(210,168,255,0.1); padding: 0.2rem 0.65rem; border-radius: 20px; border: 1px solid rgba(210,168,255,0.2); }
+.lunar-tag.jieqi { color: var(--accent2); background: rgba(63,185,80,0.1); border-color: rgba(63,185,80,0.2); }
+.today-fest { display: flex; gap: 0.4rem; flex-wrap: wrap; justify-content: center; }
+.fest-badge { font-size: 0.8rem; background: rgba(255,166,87,0.15); color: var(--accent5); padding: 0.2rem 0.6rem; border-radius: 20px; border: 1px solid rgba(255,166,87,0.3); }
 
-/* 节日 */
-.festival-list { display: flex; flex-direction: column; gap: 0.75rem; }
+.festival-list { display: flex; flex-direction: column; gap: 0.6rem; }
 .festival-item { display: flex; align-items: center; gap: 0.75rem; padding: 0.6rem 0.75rem; border-radius: 8px; background: var(--bg-card2); }
-.f-icon { font-size: 1.3rem; }
+.jieqi-item { border: 1px dashed rgba(63,185,80,0.3); background: rgba(63,185,80,0.05); }
+.f-icon { font-size: 1.2rem; }
 .f-info { flex: 1; display: flex; flex-direction: column; }
-.f-name { font-size: 0.9rem; font-weight: 500; }
+.f-name { font-size: 0.88rem; font-weight: 500; }
 .f-date { font-size: 0.75rem; color: var(--text-muted); }
 .f-countdown { text-align: right; }
 .f-days { font-size: 1.2rem; font-weight: 700; color: var(--accent); }
-.f-unit { font-size: 0.75rem; color: var(--text-muted); margin-left: 2px; }
+.f-unit { font-size: 0.72rem; color: var(--text-muted); margin-left: 2px; }
 .f-countdown.soon .f-days { color: var(--accent3); }
 
-/* 进度 */
 .progress-items { display: flex; flex-direction: column; gap: 1rem; }
 .p-header { display: flex; justify-content: space-between; font-size: 0.875rem; margin-bottom: 0.4rem; }
 .p-pct { font-weight: 600; }
@@ -246,7 +202,6 @@ const quote = quotes[new Date().getDate() % quotes.length]
 .p-fill { height: 100%; border-radius: 4px; transition: width 1s ease; }
 .p-sub { font-size: 0.75rem; color: var(--text-muted); margin-top: 0.25rem; }
 
-/* 今日 */
 .today-list { display: grid; grid-template-columns: 1fr 1fr; gap: 0.6rem; margin-bottom: 1rem; }
 .today-item { display: flex; align-items: center; gap: 0.5rem; padding: 0.5rem 0.6rem; background: var(--bg-card2); border-radius: 8px; }
 .t-icon { font-size: 1rem; }
@@ -255,4 +210,11 @@ const quote = quotes[new Date().getDate() % quotes.length]
 .quote-block { border-top: 1px solid var(--border); padding-top: 1rem; }
 .quote-text { font-size: 0.9rem; color: var(--text-muted); font-style: italic; line-height: 1.6; }
 .quote-author { font-size: 0.78rem; color: var(--text-muted); margin-top: 0.4rem; text-align: right; }
+
+@media (max-width: 768px) {
+  .section { padding: 3rem 1rem; }
+  .dt-grid { grid-template-columns: 1fr; }
+  .time-hm { font-size: 2.8rem; }
+  .today-list { grid-template-columns: 1fr; }
+}
 </style>
