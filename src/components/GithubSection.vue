@@ -246,6 +246,16 @@ const contribCells = computed(() => {
 
 .repos-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 1rem; }
 
+@media (max-width: 768px) {
+  .section { padding: 3rem 1rem; }
+  .repos-grid { grid-template-columns: 1fr; }
+  .gh-profile { flex-direction: column; align-items: flex-start; gap: 1rem; }
+  .gh-meta { gap: 1rem; flex-wrap: wrap; }
+  .filter-bar { gap: 0.4rem; }
+  .search-input { width: 100%; margin-left: 0; margin-top: 0.25rem; }
+  .contrib-grid { grid-template-columns: repeat(26, 1fr); }
+}
+
 .repo-card {
   background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius);
   padding: 1.25rem; display: flex; flex-direction: column; gap: 0.75rem;

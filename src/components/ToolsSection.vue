@@ -268,6 +268,18 @@ function date2ts() {
   gap: 1.25rem;
 }
 
+@media (max-width: 768px) {
+  .section { padding: 3rem 1rem; }
+  .tools-grid { grid-template-columns: 1fr; }
+  .tool-actions { flex-wrap: wrap; }
+  .tool-btn { flex: 1 1 calc(50% - 0.25rem); min-width: 0; }
+  .color-outputs { flex-direction: column; }
+  .pwd-options { gap: 0.75rem; }
+  .ts-row { flex-direction: column; }
+  .ts-row .tool-input-inline { width: 100%; }
+  .ts-row .tool-btn { flex: 1; }
+}
+
 .tool-card {
   background: var(--bg-card);
   border: 1px solid var(--border);

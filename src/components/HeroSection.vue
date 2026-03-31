@@ -119,7 +119,13 @@ const skills = [
   gap: 3rem;
   align-items: start;
 }
-@media (max-width: 768px) { .container { grid-template-columns: 1fr; } }
+@media (max-width: 768px) {
+  .section { padding: 3rem 1rem; }
+  .container { grid-template-columns: 1fr; gap: 2rem; }
+  .name { font-size: 1.6rem; }
+  .stats-grid { grid-template-columns: repeat(2, 1fr); }
+  .skill-row { grid-template-columns: 90px 1fr 32px; }
+}
 
 .hero-left { display: flex; flex-direction: column; gap: 1.5rem; }
 

@@ -280,4 +280,19 @@ const filteredArticles = computed(() => {
   text-decoration: none;
 }
 .load-more-btn:hover { border-color: #1e80ff; color: #1e80ff; text-decoration: none; }
+
+@media (max-width: 768px) {
+  .section { padding: 3rem 1rem; }
+  .jj-banner { flex-direction: column; align-items: flex-start; gap: 0.75rem; }
+  .jj-profile-btn { width: 100%; text-align: center; }
+  .jj-stats { flex-wrap: wrap; }
+  .jj-stat { flex: 1 1 40%; border-right: none; border-bottom: 1px solid var(--border); padding: 0.75rem; }
+  .jj-stat:nth-child(odd) { border-right: 1px solid var(--border); }
+  .jj-stat:last-child, .jj-stat:nth-last-child(2):nth-child(odd) { border-bottom: none; }
+  .article-card { flex-direction: column; padding: 1rem; }
+  .article-cover { display: none; }
+  .article-footer { gap: 0.6rem; }
+  .article-read-time { margin-left: 0; }
+  .tabs { flex-wrap: wrap; }
+}
 </style>

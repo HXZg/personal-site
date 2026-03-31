@@ -27,10 +27,24 @@ body {
   color: var(--text);
   line-height: 1.6;
   min-height: 100vh;
+  /* 防止移动端横向溢出 */
+  overflow-x: hidden;
 }
 
 a { color: var(--accent); text-decoration: none; }
 a:hover { text-decoration: underline; }
+
+/* 移动端点击高亮去除 */
+* { -webkit-tap-highlight-color: transparent; }
+
+/* 移动端输入框字体不缩放 */
+input, textarea, select, button {
+  font-size: 16px;
+  font-family: inherit;
+}
+@media (min-width: 769px) {
+  input, textarea, select, button { font-size: inherit; }
+}
 
 ::-webkit-scrollbar { width: 6px; }
 ::-webkit-scrollbar-track { background: var(--bg); }

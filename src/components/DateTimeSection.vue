@@ -200,7 +200,12 @@ const quote = quotes[new Date().getDate() % quotes.length]
   grid-template-columns: 1fr 1fr;
   gap: 1.25rem;
 }
-@media (max-width: 768px) { .dt-grid { grid-template-columns: 1fr; } }
+@media (max-width: 768px) {
+  .section { padding: 3rem 1rem; }
+  .dt-grid { grid-template-columns: 1fr; }
+  .time-hm { font-size: 2.8rem; }
+  .today-list { grid-template-columns: 1fr; }
+}
 
 .card {
   background: var(--bg-card);
